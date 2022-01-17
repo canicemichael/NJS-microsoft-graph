@@ -91,6 +91,7 @@ hbs.registerHelper('eventDateTime', function(dateTime) {
   return formatDate(date, 'M/d/yy h:mm a');
 });
 
+//the routes 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

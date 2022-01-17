@@ -31,7 +31,45 @@ module.exports = {
           .get();
       
         return events;
-      },
+    },
+    createEvent: async function(msalClient, userId, formData, timeZone) {
+        const client = getAuthenticatedClient(msalClient, userId);
+
+        // Build a Graph event
+        const newEvent = {
+            subject: formData.subject,
+            start: {
+                dateTime: formData.start,
+                timeZone: timeZone
+            },
+            end: {
+                dateTime: formData.end,
+                timeZone: timeZone
+            },
+            body: {
+                contentType: 'text',
+                content: formData.body
+            }
+        };
+
+        // Add attendees if present
+        if (formData.attendees) {
+            newEvent.attendees = [];
+            formData.attendees.forEach(attendee => {
+                newEvent.attendees.push({
+                    type: 'required',
+                    emailAddress: {
+                        address: attendee
+                    }
+                });
+            });
+        }
+
+        // POST /me/events
+        await client
+            .api('/me/events')
+            .post(newEvent);
+    },
 };
 
 function getAuthenticatedClient(msalClient, userId) {
