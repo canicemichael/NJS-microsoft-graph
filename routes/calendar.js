@@ -10,41 +10,64 @@ const validator = require('validator');
 
 /* GET /calendar */
 router.get('/',
-    async function(req, res) {
-        if (!req.session.userId) {
-            // Redirect unauthenticated requests to home page
-            res.redirect('/')
-        } else {
-            const params = {
-                active: { calendar: true }
-            };
+  async function(req, res) {
+    if (!req.session.userId) {
+      // Redirect unauthenticated requests to home page
+      res.redirect('/')
+    } else {
+      const params = {
+        active: { calendar: true }
+      };
 
-            // Get the user
-            const user = req.app.locals.users[req.session.userId];
-            // Convert user's Windows time zone ("Pacific Standard Time")
-            // to IANA format ("America/Los_Angeles")
-            const timeZoneId = iana.findIana(user.timeZone)[0];
-            console.log(`Time zone: ${timeZoneId.valueOf()}`);
+      // Get the user
+      const user = req.app.locals.users[req.session.userId];
+      // Convert user's Windows time zone ("Pacific Standard Time")
+      // to IANA format ("America/Los_Angeles")
+      const timeZoneId = iana.findIana(user.timeZone)[0];
+      console.log(`Time zone: ${timeZoneId.valueOf()}`);
 
-            var weekStart = zonedTimeToUtc(startOfWeek(new Date()), timeZoneId.valueOf());
-            var weekEnd = addDays(weekStart, 7);
-            console.log(`Start: ${formatISO(weekStart)}`);
+      // Calculate the start and end of the current week
+      // Get midnight on the start of the current week in the user's timezone,
+      // but in UTC. For example, for Pacific Standard Time, the time value would be
+      // 07:00:00Z
+      var weekStart = zonedTimeToUtc(startOfWeek(new Date()), timeZoneId.valueOf());
+      var weekEnd = addDays(weekStart, 7);
+      console.log(`Start: ${formatISO(weekStart)}`);
 
-            try {
-                // Get the events
-                const events = await graph.getCalendarView(
-                    req.app.locals.msalClient,
-                    req.session.userId,
-                    formatISO(weekStart),
-                    formatISO(weekEnd),
-                    user.timeZone );
-                
-                res.json(events.value);
-            } catch (err) {
-                res.send(JSON.stringify(err, Object.getOwnPropertyNames(err)));
-            }
-        }
+      try {
+        // Get the events
+        const events = await graph.getCalendarView(
+          req.app.locals.msalClient,
+          req.session.userId,
+          formatISO(weekStart),
+          formatISO(weekEnd),
+          user.timeZone);
+
+        // Assign the events to the view parameters
+        params.events = events.value;
+      } catch (err) {
+        req.flash('error_msg', {
+          message: 'Could not fetch events',
+          debug: JSON.stringify(err, Object.getOwnPropertyNames(err))
+        });
+      }
+
+      res.render('calendar', params);
     }
+  }
+);
+
+/* GET /calendar/new */
+router.get('/new',
+  function(req, res) {
+      if (!req.session.userId) {
+          // Redirect unauthenticated requests to home page
+          res.redirect('/')
+      } else {
+          res.locals.newEvent = {};
+          res.render('newevent');
+      }
+  }
 );
 
 module.exports = router;

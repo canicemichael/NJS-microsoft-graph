@@ -55,7 +55,7 @@ router.get('/callback',
                 req.session.userId
             );
 
-            // Add the user to user storage
+            // // Add the user to user storage
             req.app.locals.users[req.session.userId] = {
                 displayName: user.displayName,
                 email: user.mail || user.userPrincipalName,

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "nodemon ./bin/www"
   },
   "dependencies": {
     "@azure/msal-node": "^1.3.0",
@@ -25,7 +25,9 @@
     "windows-iana": "^5.0.2"
   },
   "main": "app.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
   "author": "canice",
   "license": "ISC",
   "description": ""
